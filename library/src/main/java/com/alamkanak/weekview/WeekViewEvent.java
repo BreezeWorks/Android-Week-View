@@ -13,6 +13,14 @@ public class WeekViewEvent {
     private String mName;
     private int mColor;
 
+    // Breezeworks change
+    private String mDescription; // for customer name
+    private int mLighterColor; // since we show two-colored backgrounds
+    private int mBarColor;
+    private int mDarkerColor;
+    private boolean mShouldExpand; // indicates whether event is a bar or expanded
+    private long mEmployeeId;
+
     public WeekViewEvent(){
 
     }
@@ -50,6 +58,12 @@ public class WeekViewEvent {
         this.mEndTime.set(Calendar.MINUTE, endMinute);
 
         this.mName = name;
+    }
+
+    // Breezeworks change: to include customer name
+    public WeekViewEvent(long id, String name, String description, Calendar startTime, Calendar endTime) {
+        this(id, name, startTime, endTime);
+        this.mDescription = description;
     }
 
     /**
@@ -105,5 +119,53 @@ public class WeekViewEvent {
 
     public void setId(long id) {
         this.mId = id;
+    }
+
+    /********************
+     * Breezeworks change
+     ********************/
+
+    public String getDescription() {
+        return mDescription;
+    }
+
+    public int getLighterColor() {
+        return mLighterColor;
+    }
+
+    public void setExpandedEventBackgroundColor(int mLighterColor) {
+        this.mLighterColor = mLighterColor;
+    }
+
+    public int getBarColor() {
+        return mBarColor;
+    }
+
+    public void setBarColor(int mBarColor) {
+        this.mBarColor = mBarColor;
+    }
+
+    public int getDarkerColor() {
+        return mDarkerColor;
+    }
+
+    public void setExpandedEventEdgeColor(int mDarkerColor) {
+        this.mDarkerColor = mDarkerColor;
+    }
+
+    public boolean shouldExpand() {
+        return mShouldExpand;
+    }
+
+    public void setShouldExpand(boolean mShouldExpand) {
+        this.mShouldExpand = mShouldExpand;
+    }
+
+    public long getEmployeeId() {
+        return mEmployeeId;
+    }
+
+    public void setEmployeeId(long mEmployeeId) {
+        this.mEmployeeId = mEmployeeId;
     }
 }

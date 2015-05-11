@@ -1,7 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.alamkanak.weekview">
+    package="com.alamkanak.weekview"
+    android:versionName="1.2.1">
 
-    <application android:allowBackup="true">
+    <application>
     </application>
 
 </manifest>
