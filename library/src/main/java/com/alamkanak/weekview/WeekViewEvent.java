@@ -149,7 +149,7 @@ public class WeekViewEvent {
         return mDarkerColor;
     }
 
-    public void setExpandedEventEdgeColor(int mDarkerColor) {
+    public void setExpandedEventTextColor(int mDarkerColor) {
         this.mDarkerColor = mDarkerColor;
     }
 
