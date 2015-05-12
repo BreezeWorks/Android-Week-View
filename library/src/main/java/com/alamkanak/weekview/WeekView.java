@@ -1876,7 +1876,7 @@ public class WeekView extends View {
                         Calendar selectedTime = getTimeFromPoint(getLongPressedNewEventX(), getLongPressedNewEventY());
                         if (selectedTime != null) {
                             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                            mEmptyViewClickListener.onEmptyViewClicked(selectedTime);
+                            mEmptyViewClickListener.onFinishDraggingNewEvent(selectedTime);
                         }
                     }
                     ViewCompat.postInvalidateOnAnimation(WeekView.this);
@@ -2038,6 +2038,7 @@ public class WeekView extends View {
 
     public interface EmptyViewClickListener {
         public void onEmptyViewClicked(Calendar time);
+        public void onFinishDraggingNewEvent(Calendar time);
     }
 
     public interface EmptyViewLongPressListener {
