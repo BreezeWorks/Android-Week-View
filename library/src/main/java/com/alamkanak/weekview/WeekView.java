@@ -55,9 +55,10 @@ public class WeekView extends View {
     private static final int LONG_PRESS_TIMEOUT = ViewConfiguration.getLongPressTimeout();
     private static final int EVENT_ORIGINAL_COLOR_WIDTH = 4;
     private static final int EVENT_BAR_WIDTH = 30;
+    private static final int EVENT_WHITE_TOP_BORDER_HEIGHT = 1;
+    private static final int MIN_SCROLL_DIFFERENCE = 10; //arbitrary
     private static final float MIN_EVENT_WIDTH_PERCENTAGE = 0.08f;
     private static final String TIME_FORMAT = "0p";
-    private static final int MIN_SCROLL_DIFFERENCE = 10; //arbitrary
     private Map<Long, Float> barredEmployeeByLeftPositionMap = new HashMap<>();
     private Set<Long> uniqueEmployeeIdsOfBarredEvents = new HashSet<>();
     private Integer finalXWhenScrollingToDate; //only useful when using goToDate
@@ -794,6 +795,10 @@ public class WeekView extends View {
         RectF lightColoredEventRect = new RectF(originallyColoredEventRect.right, originalEventRect.top, originalEventRect.right, originalEventRect.bottom);
         mEventBackgroundPaint.setColor(weekViewEvent.getLighterColor());
         canvas.drawRect(lightColoredEventRect, mEventBackgroundPaint);
+
+        // draw white border on top
+        RectF whiteTopBorder = new RectF(originalEventRect.left, originalEventRect.top, originalEventRect.right, originalEventRect.top + EVENT_WHITE_TOP_BORDER_HEIGHT);
+        canvas.drawRect(whiteTopBorder, mDayBackgroundPaint);
     }
 
     // Breezeworks change: color background light when showing events that are bars
