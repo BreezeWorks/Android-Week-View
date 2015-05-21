@@ -2,12 +2,18 @@ package com.alamkanak.weekview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -58,6 +64,7 @@ public class WeekView extends View {
     private static final int EVENT_WHITE_TOP_BORDER_HEIGHT = 1;
     private static final int MIN_SCROLL_DIFFERENCE = 10; //arbitrary
     private static final float MIN_EVENT_WIDTH_PERCENTAGE = 0.08f;
+    private static final int MIN_EVENT_HEADER_WIDTH = 90;
     private static final String TIME_FORMAT = "0p";
     private Map<Long, Float> barredEmployeeByLeftPositionMap = new HashMap<>();
     private Set<Long> uniqueEmployeeIdsOfBarredEvents = new HashSet<>();
@@ -81,6 +88,7 @@ public class WeekView extends View {
     private PointF mCurrentOrigin = new PointF(0f, 0f);
     private Direction mCurrentScrollDirection = Direction.NONE;
     private Paint mHeaderBackgroundPaint;
+    private TextPaint mEventHeaderTextPaint;
     private float mWidthPerDay;
     private Paint mDayBackgroundPaint;
     private Paint mHourSeparatorPaint;
@@ -104,6 +112,7 @@ public class WeekView extends View {
     private float mDistanceY = 0;
     private float mDistanceX = 0;
     private Direction mCurrentFlingDirection = Direction.NONE;
+    private Paint mEventHeaderBackgroundPaint;
 
     // Attributes and their default values.
     private int mHourHeight = 50;
@@ -145,6 +154,7 @@ public class WeekView extends View {
     private EmptyViewLongPressListener mEmptyViewLongPressListener;
     private DateTimeInterpreter mDateTimeInterpreter;
     private ScrollListener mScrollListener;
+    private EventListener mEventListener;
 
     // CurrentTime color
     private int mNowLineColor = Color.rgb(102, 102, 102);
@@ -431,6 +441,11 @@ public class WeekView extends View {
         emptyViewSubtitleTextPaint.getTextBounds(EMPTY_VIEW_SUBTITLE, 0, EMPTY_VIEW_SUBTITLE.length(), emptyViewSubtitleText);
         emptyViewSubtitleTextWidth = emptyViewSubtitleText.width();
         emptyViewSubtitleTextHeight = emptyViewSubtitleText.height();
+
+        // Prepare header
+        mEventHeaderBackgroundPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        mEventHeaderTextPaint = new TextPaint(mEventTextPaint);
+        mEventHeaderTextPaint.setColor(getResources().getColor(android.R.color.black));
     }
 
     @Override
@@ -757,6 +772,8 @@ public class WeekView extends View {
                         drawBackground(eventRect.originalEvent, eventRectF, canvas);
 
                         if (eventRect.originalEvent.shouldExpand()) {
+                            drawEventHeader(eventRect.originalEvent, eventRectF, canvas);
+
                             // draw name
                             mEventTextPaint.setFakeBoldText(true); // Breezeworks change: bold event name
                             mEventTextPaint.setColor(eventRect.originalEvent.getDarkerColor());
@@ -773,6 +790,55 @@ public class WeekView extends View {
             }
         }
         return hasEventsForDate;
+    }
+
+    private void drawEventHeader(@NonNull WeekViewEvent weekViewEvent, @NonNull RectF originalEventRect, @NonNull Canvas canvas) {
+        if (mEventListener != null) {
+            float left =  originalEventRect.left+EVENT_ORIGINAL_COLOR_WIDTH+mEventPadding*2;
+            Bitmap headerBitmap = mEventListener.getEventHeaderImage();
+            float headerImageWidth = (headerBitmap == null) ? 0 : headerBitmap.getWidth();
+            float availableWidth = originalEventRect.right - left - headerImageWidth;
+            if (availableWidth < MIN_EVENT_HEADER_WIDTH) {
+                return;
+            }
+
+            String eventHeaderText = mEventListener.formatHeaderText(weekViewEvent);
+            if (TextUtils.isEmpty(eventHeaderText)) { // don't show a header if the event has no header text
+                return;
+            }
+
+            // draw background
+            Bitmap headerBackgroundBitmap = mEventListener.getEventHeaderBackgroundTileImage();
+            if (headerBackgroundBitmap != null) {
+                BitmapShader bs = new BitmapShader(headerBackgroundBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+                mEventHeaderBackgroundPaint.setColorFilter(new PorterDuffColorFilter(weekViewEvent.getLighterColor(), PorterDuff.Mode.SRC_IN));
+                mEventHeaderBackgroundPaint.setShader(bs);
+
+                Matrix m = new Matrix();
+                RectF headerBackgroundRect = new RectF(originalEventRect.left, originalEventRect.top - mEventListener.getEventHeaderHeight(), originalEventRect.right, originalEventRect.top);
+                m.postTranslate(headerBackgroundRect.left, headerBackgroundRect.right);
+                mEventHeaderBackgroundPaint.getShader().setLocalMatrix(m);
+
+                canvas.drawRect(headerBackgroundRect, mDayBackgroundPaint);
+                canvas.drawRect(headerBackgroundRect, mEventHeaderBackgroundPaint);
+            }
+
+            // draw header contents
+            float bottom = originalEventRect.top - mEventPadding*2;
+
+            if (headerBitmap != null) {
+                RectF dstRect = new RectF(left, bottom - mEventListener.getEventHeaderImageHeight(), left+headerImageWidth, bottom);
+                mEventHeaderBackgroundPaint.setColorFilter(new PorterDuffColorFilter(weekViewEvent.getDarkerColor(), PorterDuff.Mode.SRC_IN));
+                canvas.drawBitmap(headerBitmap, null, dstRect, mEventHeaderBackgroundPaint);
+            }
+
+            // draw header text
+            left += ((headerBitmap == null) ? 0 : headerImageWidth+mEventPadding*2);
+            float availableTextWidth = originalEventRect.right - left;
+            mEventHeaderTextPaint.setColor(weekViewEvent.getDarkerColor());
+            eventHeaderText = TextUtils.ellipsize(eventHeaderText, mEventHeaderTextPaint, availableTextWidth, TextUtils.TruncateAt.END).toString();
+            canvas.drawText(eventHeaderText, left, bottom, mEventHeaderTextPaint);
+        }
     }
 
     // Breezeworks change: draw background depending on whether event should be expanded or not
@@ -1489,6 +1555,14 @@ public class WeekView extends View {
         return mScrollListener;
     }
 
+    public EventListener getEventListener() {
+        return mEventListener;
+    }
+
+    public void setEventListener(EventListener mEventListener) {
+        this.mEventListener = mEventListener;
+    }
+
     /**
      * Get the interpreter which provides the text to show in the header column and the header row.
      *
@@ -2003,6 +2077,18 @@ public class WeekView extends View {
     }
 
     /**
+     * Refreshes the view
+     */
+    public void refresh() {
+        invalidate();
+    }
+
+    public void updateWeekViewEvent(@NonNull WeekViewEvent weekViewEvent) {
+
+        refresh();
+    }
+
+    /**
      * Vertically scroll to a specific hour in the week view.
      * @param hour The hour to scroll to in 24-hour format. Supported values are 0-24.
      */
@@ -2061,6 +2147,14 @@ public class WeekView extends View {
         public void onFirstVisibleDayChanged(Calendar newFirstVisibleDay, Calendar oldFirstVisibleDay);
     }
 
+    public interface EventListener {
+        @Nullable Bitmap getEventHeaderBackgroundTileImage();
+        @Nullable Bitmap getEventHeaderImage();
+        int getEventHeaderHeight();
+        int getEventHeaderImageHeight();
+        @Nullable String formatHeaderText(@NonNull WeekViewEvent weekViewEvent);
+        void onDestroy();
+    }
 
     /////////////////////////////////////////////////////////////////
     //
