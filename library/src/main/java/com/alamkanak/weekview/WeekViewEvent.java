@@ -1,5 +1,8 @@
 package com.alamkanak.weekview;
 
+import android.graphics.Bitmap;
+import android.support.annotation.Nullable;
+
 import java.util.Calendar;
 
 /**
@@ -20,6 +23,8 @@ public class WeekViewEvent {
     private int mDarkerColor;
     private boolean mShouldExpand; // indicates whether event is a bar or expanded
     private long mEmployeeId;
+
+    private Integer driveTimeMin;
 
     public WeekViewEvent(){
 
@@ -167,5 +172,14 @@ public class WeekViewEvent {
 
     public void setEmployeeId(long mEmployeeId) {
         this.mEmployeeId = mEmployeeId;
+    }
+
+    @Nullable
+    public Integer getDriveTimeMin() {
+        return driveTimeMin;
+    }
+
+    public void setDriveTimeMin(@Nullable Integer driveTimeMin) {
+        this.driveTimeMin = driveTimeMin;
     }
 }
