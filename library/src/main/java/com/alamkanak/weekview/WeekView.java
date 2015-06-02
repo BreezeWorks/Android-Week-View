@@ -1925,10 +1925,6 @@ public class WeekView extends View {
         if (event.getAction() == MotionEvent.ACTION_UP) {
             if (mCurrentScrollDirection == Direction.HORIZONTAL) {
                 float leftDays = Math.round(mCurrentOrigin.x / (mWidthPerDay + mColumnGap));
-                if(mDistanceX > 0)
-                    leftDays--;
-                else
-                    leftDays++;
                 int nearestOrigin = (int) (mCurrentOrigin.x - leftDays * (mWidthPerDay + mColumnGap));
                 mStickyScroller.startScroll((int) mCurrentOrigin.x, 0, -nearestOrigin, 0);
                 ViewCompat.postInvalidateOnAnimation(WeekView.this);
