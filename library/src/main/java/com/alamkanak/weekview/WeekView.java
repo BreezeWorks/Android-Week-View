@@ -25,7 +25,6 @@ import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.HapticFeedbackConstants;
@@ -752,7 +751,6 @@ public class WeekView extends View {
                     // Calculate left and right.
                     float left = startFromPixel + eventRect.left * mWidthPerDay;
                     if (left < startFromPixel) left += mOverlappingEventGap;
-                    float originalLeft = left + mEventPadding;
                     float right = left + eventRect.width * mWidthPerDay;
                     if (right < startFromPixel + mWidthPerDay || !eventRect.originalEvent.shouldExpand())
                         right -= mOverlappingEventGap; // set right margin for last bar event
@@ -777,11 +775,11 @@ public class WeekView extends View {
                             // draw name
                             mEventTextPaint.setFakeBoldText(true); // Breezeworks change: bold event name
                             mEventTextPaint.setColor(eventRect.originalEvent.getDarkerColor());
-                            float textBottom = drawText(eventRect.originalEvent.getName(), eventRectF, canvas, originalTop, originalLeft);
+                            float textBottom = drawText(eventRect.originalEvent.getName(), eventRectF, canvas, originalTop);
 
                             // draw description
                             mEventTextPaint.setFakeBoldText(false); // Breezeworks change: keep description text normal weight
-                            drawDescription(eventRect.originalEvent.getDescription(), eventRectF, canvas, textBottom, originalLeft);
+                            drawDescription(eventRect.originalEvent.getDescription(), eventRectF, canvas, textBottom);
                         } else {
                             // don't show text
                         }
@@ -881,15 +879,16 @@ public class WeekView extends View {
      * @param rect         The rectangle on which the text is to be drawn.
      * @param canvas       The canvas to draw upon.
      * @param originalTop  The original top position of the rectangle. The rectangle may have some of its portion outside of the visible area.
-     * @param originalLeft The original left position of the rectangle. The rectangle may have some of its portion outside of the visible area.
      * @return pixel indicator for bottom of drawn text
      */
-    private float drawText(String text, RectF rect, Canvas canvas, float originalTop, float originalLeft) {
+    private float drawText(String text, RectF rect, Canvas canvas, float originalTop) {
         float bottom = originalTop; // Breezeworks change: need to keep track of bottom indicator to add more text
         int height = (int) (rect.bottom - originalTop - mEventPadding * 2);
-        if (rect.right - rect.left - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap <= 0 || height <= 0) return bottom;
+        if (rect.right - rect.left - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap <= 0 || height <= 0) {
+            return bottom;
+        }
 
-        float width = rect.right - originalLeft - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap;
+        float width = rect.right - rect.left - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap;
         if (width < 0) {
             return bottom;
         }
@@ -898,23 +897,21 @@ public class WeekView extends View {
         StaticLayout textLayout = new StaticLayout(text, mEventTextPaint, (int) width, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
 
         // Crop height
-        int availableHeight = height / 2; // Breezeworks change: only allow title to be at most half the screen to include customer name
         int textHeight = textLayout.getHeight();
-        int lineCount = textLayout.getLineCount();
-        int lineHeight = textHeight / lineCount;
-        float widthAvailable;
-        if (height - lineHeight < 0) {
-            widthAvailable = width * lineCount;
-        } else {
-            int availableLineCount = (int) Math.floor((availableHeight * lineCount) / textHeight);
-            widthAvailable = width * availableLineCount;
+        int availableHeight = height / 2; // Breezeworks change: only allow title to be at most half the screen to include customer name
+        if (availableHeight < textHeight && height > textHeight) {
+            availableHeight = textHeight;
         }
+        int lineCount = textLayout.getLineCount();
+        int availableLineCount = (int) Math.floor((availableHeight * lineCount) / textHeight);
+        float widthAvailable = width * availableLineCount;
+
         textLayout = new StaticLayout(TextUtils.ellipsize(text, mEventTextPaint, widthAvailable, TextUtils.TruncateAt.END), mEventTextPaint, (int) width, Layout.Alignment.ALIGN_NORMAL, 1.0f, 1.0f, false);
         bottom += textLayout.getHeight();
 
         // Draw text
         canvas.save();
-        canvas.translate(originalLeft + mEventPadding, originalTop + mEventPadding);
+        canvas.translate(rect.left + mEventPadding*2, originalTop + mEventPadding);
         textLayout.draw(canvas);
         canvas.restore();
         return bottom;
@@ -927,14 +924,13 @@ public class WeekView extends View {
      * @param rect         The rectangle on which the text is to be drawn.
      * @param canvas       The canvas to draw upon.
      * @param top          top position where description should be drawn
-     * @param originalLeft The original left position of the rectangle. The rectangle may have some of its portion outside of the visible area.
      * @return pixel indicator for bottom of drawn text
      */
-    private void drawDescription(String text, RectF rect, Canvas canvas, float top, float originalLeft) {
-        int availableHeight = (int) (rect.bottom - top - mEventPadding*3);
+    private void drawDescription(String text, RectF rect, Canvas canvas, float top) {
+        int availableHeight = (int) (rect.bottom - top);
         if (rect.right - rect.left - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap <= 0 || availableHeight <= 0) return;
 
-        int width = (int) (rect.right - originalLeft - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap);
+        int width = (int) (rect.right - rect.left - mEventPadding * 3 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap);
         if (width < 0) {
             return;
         }
@@ -951,7 +947,7 @@ public class WeekView extends View {
 
         // Draw text
         canvas.save();
-        canvas.translate(originalLeft + mEventPadding, top + mEventPadding);
+        canvas.translate(rect.left + mEventPadding * 2, top + mEventPadding);
         textLayout.draw(canvas);
         canvas.restore();
     }
@@ -2056,7 +2052,6 @@ public class WeekView extends View {
 
         if (scroll) {
             finalXWhenScrollingToDate = (int)(-dateDifference * (mWidthPerDay + mColumnGap));
-            Log.e("computing scroll", "delta x " + (int)(finalXWhenScrollingToDate - mCurrentOrigin.x) + " date diff " + dateDifference);
             mStickyScroller.startScroll((int) mCurrentOrigin.x, 0, (int)(finalXWhenScrollingToDate - mCurrentOrigin.x), 0);
         } else {
             mCurrentOrigin.x = -dateDifference * (mWidthPerDay + mColumnGap);
