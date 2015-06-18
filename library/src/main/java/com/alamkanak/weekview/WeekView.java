@@ -740,7 +740,9 @@ public class WeekView extends View {
             for (int i = 0; i < mEventRects.size(); i++) {
                 EventRect eventRect = mEventRects.get(i);
                 if (isSameDay(eventRect.event.getStartTime(), date)) {
-                    hasEventsForDate = true;
+                    if (eventRect.originalEvent.shouldExpand()) {
+                        hasEventsForDate = true;
+                    }
                     // Calculate top.
                     float top = mHourHeight * 24 * eventRect.top / 1440 + mCurrentOrigin.y + dayHeaderHeight + mHeaderMarginBottom + mTimeTextHeight / 2 + mEventMarginVertical;
                     float originalTop = top;
