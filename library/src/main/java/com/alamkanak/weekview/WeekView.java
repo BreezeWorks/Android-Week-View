@@ -433,19 +433,6 @@ public class WeekView extends View {
         mEventHeaderTextPaint.setColor(getResources().getColor(android.R.color.black));
     }
 
-    public void initEmptyView() {
-//        Rect emptyViewText = new Rect();
-//        String emptyViewTitle = getEmptyViewClickListener().getEmptyViewTitle();
-//        emptyViewTitleTextPaint.getTextBounds(emptyViewTitle, 0, emptyViewTitle.length(), emptyViewText);
-//
-//        Rect emptyViewSubtitleText = new Rect();
-//        String emptyViewSubtitle = getEmptyViewClickListener().getEmptyViewSubtitle();
-//        emptyViewSubtitleTextPaint.getTextBounds(emptyViewSubtitle, 0, emptyViewSubtitle.length(), emptyViewSubtitleText);
-//        emptyViewSubtitleTextHeight = emptyViewSubtitleText.height();
-//
-//        invalidate();
-    }
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
