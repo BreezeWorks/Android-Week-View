@@ -54,8 +54,6 @@ import java.util.Set;
 public class WeekView extends View {
 
     // Breezework changes
-    private static final String EMPTY_VIEW_TITLE = "You don\'t have jobs today.";
-    private static final String EMPTY_VIEW_SUBTITLE = "Tap here to add a new one.";
     private static final int EMPTY_VIEW_VERTICAL_PADDING = 24;
     private static final int LONG_PRESS_TIMEOUT = ViewConfiguration.getLongPressTimeout();
     private static final int EVENT_ORIGINAL_COLOR_WIDTH = 4;
@@ -94,12 +92,8 @@ public class WeekView extends View {
     private float mHeaderMarginBottom;
     private Paint mTodayBackgroundPaint;
     private Paint mTodayHeaderTextPaint;
-    private Paint emptyViewTitleTextPaint;
-    private float emptyViewTitleTextWidth;
-    private float emptyViewTitleTextHeight;
-    private Paint emptyViewSubtitleTextPaint;
-    private float emptyViewSubtitleTextWidth;
-    private float emptyViewSubtitleTextHeight;
+    private TextPaint emptyViewTitleTextPaint;
+    private TextPaint emptyViewSubtitleTextPaint;
     private Paint mEventBackgroundPaint;
     private float mHeaderColumnWidth;
     private List<EventRect> mEventRects;
@@ -426,20 +420,12 @@ public class WeekView extends View {
         emptyViewTitleTextPaint = new TextPaint(mEventTextPaint);
         emptyViewTitleTextPaint.setColor(getResources().getColor(R.color.breeze_red));
         emptyViewTitleTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.empty_view_text_size));
-
-        Rect emptyViewText = new Rect();
-        emptyViewTitleTextPaint.getTextBounds(EMPTY_VIEW_TITLE, 0, EMPTY_VIEW_TITLE.length(), emptyViewText);
-        emptyViewTitleTextWidth = emptyViewText.width();
-        emptyViewTitleTextHeight = emptyViewText.height();
+        emptyViewTitleTextPaint.setFakeBoldText(true);
 
         // Prepare empty view subtitle text
         emptyViewSubtitleTextPaint = new TextPaint(emptyViewTitleTextPaint);
         emptyViewSubtitleTextPaint.setColor(getResources().getColor(R.color.breeze_gray_one));
-
-        Rect emptyViewSubtitleText = new Rect();
-        emptyViewSubtitleTextPaint.getTextBounds(EMPTY_VIEW_SUBTITLE, 0, EMPTY_VIEW_SUBTITLE.length(), emptyViewSubtitleText);
-        emptyViewSubtitleTextWidth = emptyViewSubtitleText.width();
-        emptyViewSubtitleTextHeight = emptyViewSubtitleText.height();
+        emptyViewSubtitleTextPaint.setFakeBoldText(false);
 
         // Prepare header
         mEventHeaderBackgroundPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
@@ -717,10 +703,27 @@ public class WeekView extends View {
      * Draws the empty view text when there are no jobs for a day
      */
     private void drawEmptyViewText(@NonNull Canvas canvas, float startPixel) {
-        float emptyViewHeight = emptyViewTitleTextHeight + emptyViewSubtitleTextHeight + EMPTY_VIEW_VERTICAL_PADDING;
+        float width = mWidthPerDay-mHeaderColumnPadding*2;
         float yMiddle = getHeight() / 2;
-        canvas.drawText(EMPTY_VIEW_TITLE, startPixel + (mWidthPerDay - emptyViewTitleTextWidth)/2, yMiddle - EMPTY_VIEW_VERTICAL_PADDING, emptyViewTitleTextPaint);
-        canvas.drawText(EMPTY_VIEW_SUBTITLE, startPixel + (mWidthPerDay - emptyViewSubtitleTextWidth)/2, yMiddle + emptyViewHeight/2, emptyViewSubtitleTextPaint);
+
+        String emptyViewTitle = getEmptyViewClickListener().getEmptyViewTitle();
+        StaticLayout titleTextLayout = new StaticLayout(emptyViewTitle, emptyViewTitleTextPaint, (int) width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+
+        String emptyViewSubtitle = getEmptyViewClickListener().getEmptyViewSubtitle();
+        StaticLayout subtitleTextLayout = new StaticLayout(emptyViewSubtitle, emptyViewSubtitleTextPaint, (int) width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+
+        // Draw title
+        canvas.save();
+        float titleY = yMiddle-(titleTextLayout.getHeight()+subtitleTextLayout.getHeight())/2;
+        canvas.translate(startPixel + mHeaderColumnPadding, titleY);
+        titleTextLayout.draw(canvas);
+        canvas.restore();
+
+        // Draw subtitle
+        canvas.save();
+        canvas.translate(startPixel + mHeaderColumnPadding, titleY + titleTextLayout.getHeight());
+        subtitleTextLayout.draw(canvas);
+        canvas.restore();
     }
 
     /**
@@ -2121,6 +2124,8 @@ public class WeekView extends View {
     public interface EmptyViewClickListener {
         public void onEmptyViewClicked(Calendar time);
         public void onFinishDraggingNewEvent(Calendar time);
+        String getEmptyViewTitle();
+        String getEmptyViewSubtitle();
     }
 
     public interface EmptyViewLongPressListener {
