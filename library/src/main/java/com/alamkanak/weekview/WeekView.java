@@ -420,12 +420,12 @@ public class WeekView extends View {
         emptyViewTitleTextPaint = new TextPaint(mEventTextPaint);
         emptyViewTitleTextPaint.setColor(getResources().getColor(R.color.breeze_red));
         emptyViewTitleTextPaint.setTextSize(getResources().getDimensionPixelSize(R.dimen.empty_view_text_size));
-        emptyViewTitleTextPaint.setFakeBoldText(true);
+        emptyViewTitleTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
 
         // Prepare empty view subtitle text
         emptyViewSubtitleTextPaint = new TextPaint(emptyViewTitleTextPaint);
         emptyViewSubtitleTextPaint.setColor(getResources().getColor(R.color.breeze_gray_one));
-        emptyViewSubtitleTextPaint.setFakeBoldText(false);
+        emptyViewSubtitleTextPaint.setTypeface(Typeface.DEFAULT);
 
         // Prepare header
         mEventHeaderBackgroundPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
@@ -708,20 +708,22 @@ public class WeekView extends View {
 
         String emptyViewTitle = getEmptyViewClickListener().getEmptyViewTitle();
         StaticLayout titleTextLayout = new StaticLayout(emptyViewTitle, emptyViewTitleTextPaint, (int) width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+        int titleHeight = titleTextLayout.getHeight();
 
         String emptyViewSubtitle = getEmptyViewClickListener().getEmptyViewSubtitle();
         StaticLayout subtitleTextLayout = new StaticLayout(emptyViewSubtitle, emptyViewSubtitleTextPaint, (int) width, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+        int subtitleHeight = subtitleTextLayout.getHeight();
 
         // Draw title
         canvas.save();
-        float titleY = yMiddle-(titleTextLayout.getHeight()+subtitleTextLayout.getHeight())/2;
+        float titleY = yMiddle-(titleHeight+subtitleHeight)/2;
         canvas.translate(startPixel + mHeaderColumnPadding, titleY);
         titleTextLayout.draw(canvas);
         canvas.restore();
 
         // Draw subtitle
         canvas.save();
-        canvas.translate(startPixel + mHeaderColumnPadding, titleY + titleTextLayout.getHeight());
+        canvas.translate(startPixel + mHeaderColumnPadding, titleY + titleHeight + mHeaderColumnPadding/3);
         subtitleTextLayout.draw(canvas);
         canvas.restore();
     }
