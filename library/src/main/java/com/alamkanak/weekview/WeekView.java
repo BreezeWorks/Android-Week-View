@@ -563,7 +563,6 @@ public class WeekView extends View {
             if (mWidthPerDay + startPixel - start > 0)
                 canvas.drawRect(start, dayHeaderHeight + mTimeTextHeight / 2 + mHeaderMarginBottom, startPixel + mWidthPerDay, getHeight(), sameDay ? mTodayBackgroundPaint : mDayBackgroundPaint);
 
-            drewEvents = drawEvents(day, startPixel, canvas);
 
             // Draw the lines for hours.
             // Prepare the separator lines for hours.
@@ -579,6 +578,8 @@ public class WeekView extends View {
                 }
             }
             canvas.drawLines(hourLines, mHourSeparatorPaint);
+
+            drewEvents = drawEvents(day, startPixel, canvas);
 
             if (!drewEvents) {
                 drawEmptyViewText(canvas, startPixel);
