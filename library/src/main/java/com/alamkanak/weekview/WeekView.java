@@ -57,6 +57,7 @@ public class WeekView extends View {
     private static final int EMPTY_VIEW_VERTICAL_PADDING = 24;
     private static final int LONG_PRESS_TIMEOUT = ViewConfiguration.getLongPressTimeout();
     private static final int EVENT_ORIGINAL_COLOR_WIDTH = 4;
+    private static final int CALENDAR_EVENT_COLOR_WIDTH = 8;
     private static final int EVENT_BAR_WIDTH = 30;
     private static final int EVENT_WHITE_TOP_BORDER_HEIGHT = 1;
     private static final int MIN_SCROLL_DIFFERENCE = 10; //arbitrary
@@ -859,8 +860,10 @@ public class WeekView extends View {
     // Breezeworks change: our background is different. we want a sliver of the original color and the rest to be the lighter color
     private void drawExpandedBackground(@NonNull WeekViewEvent weekViewEvent, @NonNull RectF originalEventRect, @NonNull Canvas canvas) {
         // draw sliver with original color
-        mEventBackgroundPaint.setColor(weekViewEvent.getColor() == 0 ? mDefaultEventColor : weekViewEvent.getColor());
-        RectF originallyColoredEventRect = new RectF(originalEventRect.left, originalEventRect.top, originalEventRect.left + EVENT_ORIGINAL_COLOR_WIDTH, originalEventRect.bottom);
+        int sliverColor = (weekViewEvent.getSliverColor() != 0) ? weekViewEvent.getSliverColor() : weekViewEvent.getColor();
+        mEventBackgroundPaint.setColor(weekViewEvent.getColor() == 0 ? mDefaultEventColor : sliverColor);
+        int sliverThickness = (weekViewEvent.getSliverColor() != 0) ? CALENDAR_EVENT_COLOR_WIDTH : EVENT_ORIGINAL_COLOR_WIDTH;
+        RectF originallyColoredEventRect = new RectF(originalEventRect.left, originalEventRect.top, originalEventRect.left + sliverThickness, originalEventRect.bottom);
         canvas.drawRect(originallyColoredEventRect, mEventBackgroundPaint);
 
         // draw rest with lighter color
