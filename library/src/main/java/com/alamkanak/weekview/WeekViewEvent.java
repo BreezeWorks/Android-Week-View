@@ -23,6 +23,8 @@ public class WeekViewEvent {
     private int mDarkerColor;
     private boolean mShouldExpand; // indicates whether event is a bar or expanded
     private long mEmployeeId;
+    private String mNotes;
+    private int mSliverColor;
 
     private Integer driveTimeMin;
 
@@ -63,12 +65,14 @@ public class WeekViewEvent {
         this.mEndTime.set(Calendar.MINUTE, endMinute);
 
         this.mName = name;
+        mSliverColor = 0;
     }
 
     // Breezeworks change: to include customer name
     public WeekViewEvent(long id, String name, String description, Calendar startTime, Calendar endTime) {
         this(id, name, startTime, endTime);
         this.mDescription = description;
+        mSliverColor = 0;
     }
 
     /**
@@ -172,6 +176,22 @@ public class WeekViewEvent {
 
     public void setEmployeeId(long mEmployeeId) {
         this.mEmployeeId = mEmployeeId;
+    }
+
+    public String getNotes() {
+        return mNotes;
+    }
+
+    public void setNotes(String notes) {
+        this.mNotes = notes;
+    }
+
+    public int getSliverColor() {
+        return mSliverColor;
+    }
+
+    public void setSliverColor(int mSliverColor) {
+        this.mSliverColor = mSliverColor;
     }
 
     @Nullable
