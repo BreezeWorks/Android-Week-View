@@ -25,6 +25,8 @@ public class WeekViewEvent {
     private long mEmployeeId;
     private String mNotes;
     private int mSliverColor;
+    private boolean allDayEvent;
+    private boolean calendarEvent;
 
     private Integer driveTimeMin;
 
@@ -201,5 +203,21 @@ public class WeekViewEvent {
 
     public void setDriveTimeMin(@Nullable Integer driveTimeMin) {
         this.driveTimeMin = driveTimeMin;
+    }
+
+    public boolean isAllDayEvent() {
+        return allDayEvent;
+    }
+
+    public void setAllDayEvent(boolean allDayEvent) {
+        this.allDayEvent = allDayEvent;
+    }
+
+    public boolean isCalendarEvent() {
+        return calendarEvent;
+    }
+
+    public void setCalendarEvent(boolean calendarEvent) {
+        this.calendarEvent = calendarEvent;
     }
 }

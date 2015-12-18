@@ -8,6 +8,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
@@ -60,6 +62,7 @@ public class WeekView extends View {
     private static final int CALENDAR_EVENT_COLOR_WIDTH = 8;
     private static final int EVENT_BAR_WIDTH = 30;
     private static final int EVENT_WHITE_TOP_BORDER_HEIGHT = 1;
+    private static final int TOP_RIGHT_TRIANGLE_LENGTH = 20;
     private static final int MIN_SCROLL_DIFFERENCE = 10; //arbitrary
     private static final float MIN_EVENT_WIDTH_PERCENTAGE = 0.08f;
     private static final int MIN_EVENT_HEADER_WIDTH = 90;
@@ -96,6 +99,7 @@ public class WeekView extends View {
     private TextPaint emptyViewTitleTextPaint;
     private TextPaint emptyViewSubtitleTextPaint;
     private Paint mEventBackgroundPaint;
+    private Paint mCalendarEventBackgroundPaint;
     private float mHeaderColumnWidth;
     private List<EventRect> mEventRects;
     private TextPaint mEventTextPaint;
@@ -383,6 +387,10 @@ public class WeekView extends View {
         // Prepare event background color.
         mEventBackgroundPaint = new Paint();
         mEventBackgroundPaint.setColor(Color.rgb(174, 208, 238));
+
+        // Prepare event background color.
+        mCalendarEventBackgroundPaint = new Paint();
+        mCalendarEventBackgroundPaint.setColor(Color.rgb(174, 208, 238));
 
         // Prepare header column background color.
         mHeaderColumnBackgroundPaint = new Paint();
@@ -859,17 +867,55 @@ public class WeekView extends View {
 
     // Breezeworks change: our background is different. we want a sliver of the original color and the rest to be the lighter color
     private void drawExpandedBackground(@NonNull WeekViewEvent weekViewEvent, @NonNull RectF originalEventRect, @NonNull Canvas canvas) {
-        // draw sliver with original color
-        int sliverColor = (weekViewEvent.getSliverColor() != 0) ? weekViewEvent.getSliverColor() : weekViewEvent.getColor();
-        mEventBackgroundPaint.setColor(weekViewEvent.getColor() == 0 ? mDefaultEventColor : sliverColor);
-        int sliverThickness = (weekViewEvent.getSliverColor() != 0) ? CALENDAR_EVENT_COLOR_WIDTH : EVENT_ORIGINAL_COLOR_WIDTH;
-        RectF originallyColoredEventRect = new RectF(originalEventRect.left, originalEventRect.top, originalEventRect.left + sliverThickness, originalEventRect.bottom);
-        canvas.drawRect(originallyColoredEventRect, mEventBackgroundPaint);
+        RectF originallyColoredEventRect = new RectF(originalEventRect.left, originalEventRect.top, originalEventRect.left + EVENT_ORIGINAL_COLOR_WIDTH, originalEventRect.bottom);
+        RectF lightColoredEventRect = new RectF(originallyColoredEventRect.right, originalEventRect.top, originalEventRect.right, originalEventRect.bottom);
 
         // draw rest with lighter color
-        RectF lightColoredEventRect = new RectF(originallyColoredEventRect.right, originalEventRect.top, originalEventRect.right, originalEventRect.bottom);
-        mEventBackgroundPaint.setColor(weekViewEvent.getLighterColor());
-        canvas.drawRect(lightColoredEventRect, mEventBackgroundPaint);
+        if (weekViewEvent.isCalendarEvent()) {
+//            Log.e("brz", "should draw checkered background for " + weekViewEvent.getName());
+            Bitmap backgroundBitmap = mEventListener.getEventBackgroundTileImage();
+            if (backgroundBitmap != null) {
+                BitmapShader bs = new BitmapShader(backgroundBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+                mCalendarEventBackgroundPaint.setColorFilter(new PorterDuffColorFilter(weekViewEvent.getLighterColor(), PorterDuff.Mode.SRC_IN));
+                mCalendarEventBackgroundPaint.setShader(bs);
+
+                Matrix m = new Matrix();
+                RectF headerBackgroundRect = new RectF(originalEventRect.left, originalEventRect.top - mEventListener.getEventHeaderHeight(), originalEventRect.right, originalEventRect.top);
+                m.postTranslate(headerBackgroundRect.left, headerBackgroundRect.right);
+                mCalendarEventBackgroundPaint.getShader().setLocalMatrix(m);
+                canvas.drawRect(lightColoredEventRect, mCalendarEventBackgroundPaint);
+
+                //Draw event colored triangle in top right corner
+                Paint paint = new Paint();
+                paint.setStrokeWidth(4);
+                paint.setColor(weekViewEvent.getSliverColor());
+                paint.setStyle(Paint.Style.FILL_AND_STROKE);
+                paint.setAntiAlias(true);
+
+                int heightOffset = EVENT_WHITE_TOP_BORDER_HEIGHT + 1;
+                Point a = new Point(Math.round(originalEventRect.left), Math.round(originalEventRect.top) + heightOffset);
+                Point b = new Point(Math.round(originalEventRect.left), Math.round(originalEventRect.top) + TOP_RIGHT_TRIANGLE_LENGTH + heightOffset);
+                Point c = new Point(Math.round(originalEventRect.left) + TOP_RIGHT_TRIANGLE_LENGTH, Math.round(originalEventRect.top) + heightOffset);
+
+                Path path = new Path();
+                path.setFillType(Path.FillType.EVEN_ODD);
+                path.moveTo(a.x, a.y);
+                path.lineTo(b.x, b.y);
+                path.lineTo(c.x, c.y);
+                path.lineTo(a.x, a.y);
+                path.close();
+                canvas.drawPath(path, paint);
+            }
+        } else {
+            // draw sliver with original color
+            int sliverColor = (weekViewEvent.getSliverColor() != 0) ? weekViewEvent.getSliverColor() : weekViewEvent.getColor();
+            mEventBackgroundPaint.setColor(weekViewEvent.getColor() == 0 ? mDefaultEventColor : sliverColor);
+            canvas.drawRect(originallyColoredEventRect, mEventBackgroundPaint);
+
+            mEventBackgroundPaint.setColor(weekViewEvent.getLighterColor());
+            canvas.drawRect(lightColoredEventRect, mEventBackgroundPaint);
+        }
+
 
         // draw white border on top
         RectF whiteTopBorder = new RectF(originalEventRect.left, originalEventRect.top, originalEventRect.right, originalEventRect.top + EVENT_WHITE_TOP_BORDER_HEIGHT);
@@ -2153,6 +2199,7 @@ public class WeekView extends View {
 
     public interface EventListener {
         @Nullable Bitmap getEventHeaderBackgroundTileImage();
+        @Nullable Bitmap getEventBackgroundTileImage();
         @Nullable Bitmap getEventHeaderImage();
         int getEventHeaderHeight();
         int getEventHeaderImageHeight();
