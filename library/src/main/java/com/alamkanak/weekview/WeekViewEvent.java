@@ -27,6 +27,7 @@ public class WeekViewEvent {
     private int mSliverColor;
     private boolean allDayEvent;
     private boolean calendarEvent;
+    private boolean recurringEvent;
 
     private Integer driveTimeMin;
 
@@ -219,5 +220,13 @@ public class WeekViewEvent {
 
     public void setCalendarEvent(boolean calendarEvent) {
         this.calendarEvent = calendarEvent;
+    }
+
+    public boolean isRecurringEvent() {
+        return recurringEvent;
+    }
+
+    public void setRecurringEvent(boolean recurringEvent) {
+        this.recurringEvent = recurringEvent;
     }
 }
