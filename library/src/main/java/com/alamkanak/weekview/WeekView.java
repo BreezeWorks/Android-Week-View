@@ -98,6 +98,7 @@ public class WeekView extends View {
     private Paint mTodayHeaderTextPaint;
     private TextPaint emptyViewTitleTextPaint;
     private TextPaint emptyViewSubtitleTextPaint;
+    private TextPaint emptyViewLinkCalendarsTextPaint;
     private Paint mEventBackgroundPaint;
     private Paint mCalendarEventBackgroundPaint;
     private float mHeaderColumnWidth;
@@ -435,6 +436,11 @@ public class WeekView extends View {
         emptyViewSubtitleTextPaint = new TextPaint(emptyViewTitleTextPaint);
         emptyViewSubtitleTextPaint.setColor(getResources().getColor(R.color.breeze_gray_one));
         emptyViewSubtitleTextPaint.setTypeface(Typeface.DEFAULT);
+
+        // Prepare link calendars text
+        emptyViewLinkCalendarsTextPaint = new TextPaint(emptyViewTitleTextPaint);
+        emptyViewLinkCalendarsTextPaint.setColor(getResources().getColor(R.color.breeze_gray_one));
+        emptyViewLinkCalendarsTextPaint.setTypeface(Typeface.DEFAULT);
 
         // Prepare header
         mEventHeaderBackgroundPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
@@ -872,11 +878,9 @@ public class WeekView extends View {
 
         // draw rest with lighter color
         if (weekViewEvent.isCalendarEvent()) {
-//            Log.e("brz", "should draw checkered background for " + weekViewEvent.getName());
             Bitmap backgroundBitmap = mEventListener.getEventBackgroundTileImage();
             if (backgroundBitmap != null) {
                 BitmapShader bs = new BitmapShader(backgroundBitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
-                mCalendarEventBackgroundPaint.setColorFilter(new PorterDuffColorFilter(weekViewEvent.getLighterColor(), PorterDuff.Mode.SRC_IN));
                 mCalendarEventBackgroundPaint.setShader(bs);
 
                 Matrix m = new Matrix();
