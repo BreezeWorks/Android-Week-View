@@ -70,6 +70,7 @@ public class WeekView extends View {
     private Map<Long, Float> barredEmployeeByLeftPositionMap = new HashMap<>();
     private Set<Long> uniqueEmployeeIdsOfBarredEvents = new HashSet<>();
     private Integer finalXWhenScrollingToDate; //only useful when using goToDate
+    private boolean hasAllDayJobs = false;
 
     @Deprecated
     public static final int LENGTH_SHORT = 1;
@@ -596,7 +597,7 @@ public class WeekView extends View {
 
             drewEvents = drawEvents(day, startPixel, canvas);
 
-            if (!drewEvents) {
+            if (!drewEvents && !hasAllDayJobs) {
                 drawEmptyViewText(canvas, startPixel);
             }
 
@@ -2159,6 +2160,10 @@ public class WeekView extends View {
 
         mCurrentOrigin.y = -verticalOffset;
         invalidate();
+    }
+
+    public void setHasAllDayJobs(boolean hasAllDayJobs) {
+        this.hasAllDayJobs = hasAllDayJobs;
     }
 
     /////////////////////////////////////////////////////////////////
