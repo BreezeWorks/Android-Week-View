@@ -11,7 +11,7 @@
             <enum name="saturday" value="7"/>
         </attr>
         <attr name="hourHeight" format="dimension"/>
-        <attr name="textSize" format="dimension"/>
+        <attr name="weekViewTextSize" format="dimension"/>
         <attr name="eventTextSize" format="dimension"/>
         <attr name="headerColumnPadding" format="dimension"/>
         <attr name="headerRowPadding" format="dimension"/>
