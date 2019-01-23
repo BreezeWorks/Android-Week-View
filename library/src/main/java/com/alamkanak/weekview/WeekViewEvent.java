@@ -2,6 +2,7 @@ package com.alamkanak.weekview;
 
 import android.graphics.Bitmap;
 import android.support.annotation.Nullable;
+import android.text.SpannableString;
 
 import java.util.Calendar;
 
@@ -14,6 +15,7 @@ public class WeekViewEvent {
     private Calendar mStartTime;
     private Calendar mEndTime;
     private String mName;
+    private SpannableString mSpannableName;
     private int mColor;
 
     // Breezeworks change
@@ -78,6 +80,13 @@ public class WeekViewEvent {
         mSliverColor = 0;
     }
 
+    public WeekViewEvent(long id, SpannableString name, String description, Calendar startTime, Calendar endTime) {
+        this(id, null, startTime, endTime);
+        this.mSpannableName = name;
+        this.mDescription = description;
+        mSliverColor = 0;
+    }
+
     /**
      * Initializes the event for week view.
      * @param id The id of the event.
@@ -107,6 +116,13 @@ public class WeekViewEvent {
 
     public void setEndTime(Calendar endTime) {
         this.mEndTime = endTime;
+    }
+
+    public SpannableString getSpannableName() {
+        if (mSpannableName != null) {
+            return mSpannableName;
+        }
+        return new SpannableString(mName);
     }
 
     public String getName() {

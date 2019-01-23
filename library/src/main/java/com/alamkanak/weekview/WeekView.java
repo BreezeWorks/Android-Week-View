@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v4.view.ViewCompat;
 import android.text.Layout;
+import android.text.SpannableString;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
@@ -799,7 +800,7 @@ public class WeekView extends View {
                             // draw name
                             mEventTextPaint.setFakeBoldText(true); // Breezeworks change: bold event name
                             mEventTextPaint.setColor(eventRect.originalEvent.getDarkerColor());
-                            float textBottom = drawText(eventRect.originalEvent.getName(), eventRectF, canvas, originalTop);
+                            float textBottom = drawText(eventRect.originalEvent.getSpannableName(), eventRectF, canvas, originalTop);
 
                             // draw description
                             mEventTextPaint.setFakeBoldText(false); // Breezeworks change: keep description text normal weight
@@ -943,7 +944,7 @@ public class WeekView extends View {
      * @param originalTop  The original top position of the rectangle. The rectangle may have some of its portion outside of the visible area.
      * @return pixel indicator for bottom of drawn text
      */
-    private float drawText(String text, RectF rect, Canvas canvas, float originalTop) {
+    private float drawText(SpannableString text, RectF rect, Canvas canvas, float originalTop) {
         float bottom = originalTop; // Breezeworks change: need to keep track of bottom indicator to add more text
         int height = (int) (rect.bottom - originalTop - mEventPadding * 2);
         if (rect.right - rect.left - mEventPadding * 2 - EVENT_ORIGINAL_COLOR_WIDTH - mOverlappingEventGap <= 0 || height <= 0) {
