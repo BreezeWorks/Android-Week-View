@@ -1,6 +1,6 @@
 package com.alamkanak.weekview;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import java.util.Calendar;
 
